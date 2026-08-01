@@ -19,26 +19,22 @@ import RegisterFlowRoot from "../pages/register/RegisterFlowRoot.jsx";
 const EditorPage = lazy(() => import("../pages/register/EditorPage.jsx"));
 const PreviewPage = lazy(() => import("../pages/register/PreviewPage.jsx"));
 
-// 💡 1. 온보딩 완료 여부를 검사하는 가드(Guard) 컴포넌트를 추가합니다.
+// 익명 토큰이 없는 첫 방문자는 온보딩으로 안내합니다.
 function InitialRoute() {
-  const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
   const hasAnonymousToken = Boolean(
     localStorage.getItem("schim.anonymousToken"),
   );
 
-  if (!hasSeenOnboarding && !hasAnonymousToken) {
-    // 온보딩을 안 봤다면 온보딩 페이지로 리다이렉트
+  if (!hasAnonymousToken) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // 온보딩을 봤다면 원래대로 홈 화면 렌더링
   return <HomePage />;
 }
 
 function AppRouter() {
   return (
     <Routes>
-      {/* 💡 2. index(기본 경로)에 HomePage 대신 검사소인 InitialRoute를 연결합니다. */}
       <Route index element={<InitialRoute />} />
 
       <Route path="/contents" element={<ContentsPage />} />

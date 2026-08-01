@@ -71,7 +71,6 @@ export default function OnboardingPage() {
 
       try {
         await createUser(trimmedNickname);
-        window.localStorage.setItem("hasSeenOnboarding", "true");
         navigate("/", { replace: true });
       } catch {
         setErrorMessage(
