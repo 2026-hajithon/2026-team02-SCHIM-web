@@ -128,12 +128,14 @@ export default function Home() {
   };
 
   const handleOpenContent = () => {
-    const contentId = openedState[currentCardId]?.contentId;
+    const content = openedState[currentCardId];
+    const contentId = content?.contentId;
 
     navigate(
       contentId
-        ? `/contents?deckId=${encodeURIComponent(contentId)}`
+        ? `/contents?contentId=${encodeURIComponent(contentId)}`
         : "/contents",
+      { state: contentId ? { content } : undefined },
     );
   };
 

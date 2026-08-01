@@ -96,12 +96,20 @@ function PreviewPage() {
   const handleExploreGuestbooks = () => {
     const contentId =
       draft.createdCard?.contentId ?? draft.selectedContent?.contentId;
+    const content = contentId
+      ? {
+          ...draft.selectedContent,
+          contentId,
+          category: draft.category,
+          subtitle: draft.selectedContent?.description,
+        }
+      : null;
 
     navigate(
       contentId
-        ? `/contents?deckId=${encodeURIComponent(contentId)}`
+        ? `/contents?contentId=${encodeURIComponent(contentId)}`
         : "/contents",
-      { replace: true },
+      { replace: true, state: content ? { content } : undefined },
     );
   };
 
