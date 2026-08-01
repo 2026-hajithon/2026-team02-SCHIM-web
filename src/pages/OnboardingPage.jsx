@@ -51,7 +51,11 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     if (isNicknameStep) {
-      navigate("/home", { replace: true });
+      // 💡 1. 온보딩을 완료했다는 기록을 로컬 스토리지에 남깁니다.
+      localStorage.setItem("hasSeenOnboarding", "true");
+
+      // 💡 2. /home 대신 기본 경로("/")로 이동하도록 수정합니다.
+      navigate("/", { replace: true });
       return;
     }
 
