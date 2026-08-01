@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import RegisterDraftContext from "./registerDraftContext.js";
 
 function createEmptyCanvas() {
@@ -73,6 +73,7 @@ function registerDraftReducer(state, action) {
 }
 
 function RegisterDraftProvider({ children }) {
+  const photoUrlsRef = useRef(new Set());
   const [draft, dispatch] = useReducer(
     registerDraftReducer,
     undefined,
@@ -86,6 +87,32 @@ function RegisterDraftProvider({ children }) {
       }
     },
     [draft.previewUrl],
+  );
+
+  useEffect(() => {
+    const nextPhotoUrls = new Set(
+      draft.canvasDocument.elements
+        .filter(
+          (element) =>
+            element.type === "photo" && element.src?.startsWith("blob:"),
+        )
+        .map((element) => element.src),
+    );
+
+    photoUrlsRef.current.forEach((url) => {
+      if (!nextPhotoUrls.has(url)) {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    photoUrlsRef.current = nextPhotoUrls;
+  }, [draft.canvasDocument.elements]);
+
+  useEffect(
+    () => () => {
+      photoUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    },
+    [],
   );
 
   const value = useMemo(() => ({ draft, dispatch }), [draft]);

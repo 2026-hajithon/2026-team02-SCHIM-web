@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import RequireCategory from "../features/register/guards/RequireCategory.jsx";
 import RequireCreatedCard from "../features/register/guards/RequireCreatedCard.jsx";
@@ -14,9 +15,10 @@ import SettingsPage from "../pages/SettingsPage.jsx";
 import CategoryPage from "../pages/register/CategoryPage.jsx";
 import CompletePage from "../pages/register/CompletePage.jsx";
 import ContentPage from "../pages/register/ContentPage.jsx";
-import EditorPage from "../pages/register/EditorPage.jsx";
 import PreviewPage from "../pages/register/PreviewPage.jsx";
 import RegisterFlowRoot from "../pages/register/RegisterFlowRoot.jsx";
+
+const EditorPage = lazy(() => import("../pages/register/EditorPage.jsx"));
 
 function AppRouter() {
   return (
@@ -83,7 +85,9 @@ function AppRouter() {
               path="editor"
               element={
                 <RequireSelectedContent>
-                  <EditorPage />
+                  <Suspense fallback={null}>
+                    <EditorPage />
+                  </Suspense>
                 </RequireSelectedContent>
               }
             />
