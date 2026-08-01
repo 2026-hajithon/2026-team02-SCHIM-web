@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import stickerAsset from "../../assets/sticker/star-red.svg";
 import CanvasDock from "../../features/register/editor/CanvasDock.jsx";
 import CanvasStage from "../../features/register/editor/CanvasStage.jsx";

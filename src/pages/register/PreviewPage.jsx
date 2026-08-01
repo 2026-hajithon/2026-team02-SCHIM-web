@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useNavigate } from "react-router";
-import GuestbookCard from "../../components/Guestbookcard.jsx";
+import { useNavigate } from "react-router-dom";
+import GuestbookCard from "../../components/common/Guestbookcard.jsx";
 import starIcon from "../../assets/icon/star.svg";
 import RegisterCompleteView from "../../features/register/components/RegisterCompleteView.jsx";
 import useRegisterDraft from "../../features/register/context/useRegisterDraft.js";

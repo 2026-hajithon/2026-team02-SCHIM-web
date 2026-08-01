@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import Button from "../../components/Button.jsx";
+import { useNavigate } from "react-router-dom";
+import Button from "../../components/common/Button.jsx";
 import ContentSearchInput from "../../features/register/components/ContentSearchInput.jsx";
 import ContentSearchResults from "../../features/register/components/ContentSearchResults.jsx";
 import useRegisterDraft from "../../features/register/context/useRegisterDraft.js";

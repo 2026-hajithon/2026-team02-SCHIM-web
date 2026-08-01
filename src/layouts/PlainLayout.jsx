@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet } from "react-router-dom";
 import AppShell from "./AppShell.jsx";
 
 // 자체 헤더를 사용하거나 헤더가 필요 없는 화면용 레이아웃입니다.
