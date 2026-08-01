@@ -29,7 +29,7 @@ function AppHeaderLayout({
         <main
           className={`min-h-0 flex-1 ${contentClassName}`}
           aria-hidden={isMenuOpen || undefined}
-          inert={isMenuOpen ? "" : undefined}
+          inert={isMenuOpen}
         >
           {children ?? <Outlet />}
         </main>
