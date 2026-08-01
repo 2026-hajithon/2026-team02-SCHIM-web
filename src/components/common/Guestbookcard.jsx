@@ -24,6 +24,7 @@ export default function GuestbookCard({
   initialDate,
   onRefresh,
   onFlip,
+  onOpen,
   compact = false,
   disabled = false,
   imageUrl,
@@ -47,14 +48,14 @@ export default function GuestbookCard({
 
     setIsLoading(true);
     try {
-      const response = content ?? (await openGuestbookAPI(id));
+      const response = content ?? (await (onOpen?.(id) ?? openGuestbookAPI(id)));
       setData(response);
 
       if (!isControlled) {
         setIsFlipped(true);
       }
 
-      onFlip?.(id);
+      onFlip?.(id, response);
     } catch (error) {
       if (error.status === 404) {
         alert("사라진 방명록이에요.");
@@ -67,6 +68,7 @@ export default function GuestbookCard({
     }
   };
 
+  const resolvedCategory = resolvedData?.category ?? category;
   const categoryLabel =
     {
       PLACE: "장소",
@@ -74,7 +76,7 @@ export default function GuestbookCard({
       MUSIC: "음악",
       MOVIE: "영화",
       SHOW: "공연",
-    }[category] || "콘텐츠";
+    }[resolvedCategory] || "콘텐츠";
 
   const categoryBgColor =
     {
@@ -83,7 +85,7 @@ export default function GuestbookCard({
       MUSIC: "var(--color-key-music-500)",
       MOVIE: "var(--color-key-movie-500)",
       SHOW: "var(--color-key-show-500)",
-    }[category] || "var(--color-key-place-500)";
+    }[resolvedCategory] || "var(--color-key-place-500)";
 
   return (
     <div

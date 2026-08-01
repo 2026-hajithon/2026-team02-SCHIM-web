@@ -3,21 +3,9 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import GuestbookCard from "../../components/common/Guestbookcard.jsx";
 import starIcon from "../../assets/icon/star.svg";
+import createGuestbook from "../../features/register/api/createGuestbook.js";
 import RegisterCompleteView from "../../features/register/components/RegisterCompleteView.jsx";
 import useRegisterDraft from "../../features/register/context/useRegisterDraft.js";
-
-function downloadCardImage(imageBlob) {
-  const downloadUrl = URL.createObjectURL(imageBlob);
-  const anchor = document.createElement("a");
-
-  anchor.href = downloadUrl;
-  anchor.download = `schim-card-${Date.now()}.png`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-
-  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-}
 
 function formatCardDate(date) {
   const hour = date.getHours();
@@ -56,7 +44,7 @@ function PreviewPage() {
     [],
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isSaving) {
       return;
     }
@@ -66,10 +54,18 @@ function PreviewPage() {
 
     try {
       if (!draft.pngBlob) {
-        throw new Error("저장할 카드 이미지가 없어요.");
+        throw new Error("전송할 카드 이미지가 없어요.");
       }
 
-      downloadCardImage(draft.pngBlob);
+      const createdCard = await createGuestbook({
+        imageBlob: draft.pngBlob,
+        content: {
+          ...draft.selectedContent,
+          category: draft.category,
+        },
+      });
+
+      dispatch({ type: "SET_CREATED_CARD", payload: createdCard });
       setSubmitStatus("sending");
       flipTimerRef.current = window.setTimeout(() => {
         setIsFlipped(true);
@@ -98,8 +94,8 @@ function PreviewPage() {
   };
 
   const handleExploreGuestbooks = () => {
-    const contentId = draft.selectedContent?.id;
-    dispatch({ type: "RESET" });
+    const contentId =
+      draft.createdCard?.contentId ?? draft.selectedContent?.contentId;
 
     navigate(
       contentId
@@ -110,7 +106,6 @@ function PreviewPage() {
   };
 
   const handleReturnHome = () => {
-    dispatch({ type: "RESET" });
     navigate("/", { replace: true });
   };
 
@@ -246,7 +241,7 @@ function PreviewPage() {
           disabled={isSaving}
           className="bg-bg-muted text-text-light body-15-m rounded-md px-4 py-3 disabled:opacity-50"
         >
-          {isSaving ? "저장 중" : "보내기"}
+          {isSaving ? "전송 중" : "보내기"}
         </button>
       </div>
     </section>
