@@ -1,20 +1,236 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import "tailwindcss";
 
+/* ============================================================
+   SCHIM Design Tokens
+   Tailwind CSS 4 CSS-first theme configuration
+   ============================================================ */
+
 @theme {
-  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  /* Fonts */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+
+  /* Dark neutrals */
+  --color-bg-base: #121212;
+  --color-bg-raised: #1a1a1a;
+  --color-bg-elev-warm: #211f1a;
+  --color-border-dark: #262626;
+
+  /* Paper */
+  --color-paper-base: #fffaf0;
+  --color-paper-warm: #f4efe6;
+  --color-paper-tape: #e3dbcf;
+
+  /* Ink */
+  --color-ink-base: #211f1a;
+  --color-ink-soft: #59524a;
+
+  /* Text on dark surfaces */
+  --color-text-light: #f5f5f5;
+  --color-text-cream: #f4efe6;
+  --color-text-muted-warm: #9e968a;
+  --color-text-muted-grey: #8a8a8a;
+
+  /* Overlay and miscellaneous */
+  --color-overlay-ghost: rgb(255 255 255 / 20%);
+  --color-overlay-dim: rgb(153 153 153 / 17%);
+  --color-placeholder: #d9d9d9;
+
+  /* Place */
+  --color-key-place-700: #a65a24;
+  --color-key-place-500: #ff8b38;
+  --color-key-place-300: #ffb988;
+  --color-key-place-100: #ffe8d7;
+
+  /* Book */
+  --color-key-book-700: #97a646;
+  --color-key-book-500: #e9ff6c;
+  --color-key-book-300: #f2ffa5;
+  --color-key-book-100: #fbffe2;
+
+  /* Music */
+  --color-key-music-700: #542ba2;
+  --color-key-music-500: #816ef9;
+  --color-key-music-300: #b3a7fb;
+  --color-key-music-100: #e6e2fe;
+
+  /* Movie */
+  --color-key-movie-700: #951737;
+  --color-key-movie-500: #e52454;
+  --color-key-movie-300: #f07d98;
+  --color-key-movie-100: #fad3dd;
+
+  /* Show */
+  --color-key-show-700: #33879e;
+  --color-key-show-500: #4ed0f4;
+  --color-key-show-300: #97e2f8;
+  --color-key-show-100: #dcf6fd;
+
+  /* Typography */
+  --tracking-global: -0.03em;
+  --leading-global: 1.5;
+
+  /* Radius */
+  --radius-card: 16px;
 }
 
-:root {
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-light);
+    font-family: var(--font-sans);
+    letter-spacing: var(--tracking-global);
+    line-height: var(--leading-global);
+  }
+}
+
+/* Category utilities */
+@utility cat-place {
+  --key: var(--color-key-place-500);
+  --key-soft: var(--color-key-place-100);
+}
+
+@utility cat-book {
+  --key: var(--color-key-book-500);
+  --key-soft: var(--color-key-book-100);
+}
+
+@utility cat-music {
+  --key: var(--color-key-music-500);
+  --key-soft: var(--color-key-music-100);
+}
+
+@utility cat-movie {
+  --key: var(--color-key-movie-500);
+  --key-soft: var(--color-key-movie-100);
+}
+
+@utility cat-show {
+  --key: var(--color-key-show-500);
+  --key-soft: var(--color-key-show-100);
+}
+
+/* Typography utilities */
+@utility display-30 {
   font-family: var(--font-sans);
-  color-scheme: dark;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+@utility heading-30-sb {
+  font-size: 30px;
+  font-weight: 600;
+}
+
+@utility heading-26-sb {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+@utility heading-26-b {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+@utility heading-24-sb {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+@utility heading-24-b {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+@utility heading-20-sb {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+@utility heading-20-b {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@utility body-17-r {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+@utility body-17-m {
+  font-size: 17px;
+  font-weight: 500;
+}
+
+@utility body-17-sb {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+@utility body-15-r {
+  font-size: 15px;
+  font-weight: 400;
+}
+
+@utility body-15-m {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@utility body-15-sb {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@utility body-13-r {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+@utility body-13-sb {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@utility caption-12-r {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+@utility caption-12-sb {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Component utilities */
+@utility card-blind {
+  border-radius: var(--radius-card);
+  background-color: var(--color-paper-base);
+  color: var(--color-ink-base);
+
+  & .meta {
+    color: var(--color-ink-soft);
+  }
+}
+
+@utility card-reveal {
+  border-radius: var(--radius-card);
+  background-color: var(--key, var(--color-key-place-500));
+  color: var(--color-ink-base);
+}
+
+@utility surface {
+  border: 1px solid var(--color-border-dark);
+  background-color: var(--color-bg-elev-warm);
 }

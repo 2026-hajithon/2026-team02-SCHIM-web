@@ -1,11 +1,11 @@
 function App() {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-950 px-6 text-white">
+    <main className="bg-bg-base text-text-light grid min-h-screen place-items-center px-6">
       <section className="text-center">
-        <p className="mb-3 text-sm font-semibold tracking-widest text-cyan-400 uppercase">
+        <p className="text-key-show-500 mb-3 text-sm font-semibold tracking-widest uppercase">
           SCHIM Web
         </p>
-        <p className="mt-5 text-slate-400"></p>
+        <p className="text-text-muted-grey mt-5"></p>
       </section>
     </main>
   );
