@@ -3,10 +3,11 @@ export default function Button({
   variant = "primary-light",
   size = "full",
   onClick,
+  disabled = false,
 }) {
   // 공통 클래스: flex, 중앙 정렬, border-radius 6px
   const baseClasses =
-    "flex justify-center items-center rounded-[6px] cursor-pointer transition-opacity hover:opacity-80";
+    "flex justify-center items-center rounded-[6px] cursor-pointer transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:opacity-50";
 
   // 사이즈별 클래스 (피그마 width/height/padding 스펙)
   const sizeClasses = {
@@ -27,6 +28,7 @@ export default function Button({
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]}`}
     >
       {children}

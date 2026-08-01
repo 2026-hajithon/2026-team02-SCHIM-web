@@ -2,6 +2,7 @@ const DEPLOYED_API_URL = "https://two026-team02-schim-server.onrender.com";
 const ANONYMOUS_TOKEN_KEY = "schim.anonymousToken";
 
 const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const configuredDevToken = import.meta.env.VITE_DEV_ANONYMOUS_TOKEN?.trim();
 const apiBaseUrl = (
   configuredApiUrl || (import.meta.env.DEV ? "" : DEPLOYED_API_URL)
 ).replace(/\/$/, "");
@@ -17,7 +18,10 @@ export class ApiError extends Error {
 }
 
 export function getAnonymousToken() {
-  return window.localStorage.getItem(ANONYMOUS_TOKEN_KEY);
+  return (
+    window.localStorage.getItem(ANONYMOUS_TOKEN_KEY) ||
+    (import.meta.env.DEV ? configuredDevToken : null)
+  );
 }
 
 export function setAnonymousToken(token) {

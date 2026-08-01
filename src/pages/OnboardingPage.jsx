@@ -4,6 +4,7 @@ import onboardingOne from "../assets/Onboarding 1.svg";
 import onboardingTwo from "../assets/Onboarding 2.svg";
 import profileImg from "../assets/Profile.svg";
 import Button from "../components/common/Button.jsx";
+import createUser from "../features/onboarding/api/createUser.js";
 import AppShell from "../layouts/AppShell.jsx";
 
 const slides = [
@@ -46,16 +47,39 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [nicknameIndex, setNicknameIndex] = useState(0);
+  const [nickname, setNickname] = useState(nicknames[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const isNicknameStep = step === 2;
   const slide = slides[step];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isNicknameStep) {
-      // 💡 1. 온보딩을 완료했다는 기록을 로컬 스토리지에 남깁니다.
-      localStorage.setItem("hasSeenOnboarding", "true");
+      if (isSubmitting) {
+        return;
+      }
 
-      // 💡 2. /home 대신 기본 경로("/")로 이동하도록 수정합니다.
-      navigate("/", { replace: true });
+      const trimmedNickname = nickname.trim();
+
+      if (!trimmedNickname) {
+        setErrorMessage("닉네임을 입력해주세요.");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setErrorMessage("");
+
+      try {
+        await createUser(trimmedNickname);
+        window.localStorage.setItem("hasSeenOnboarding", "true");
+        navigate("/", { replace: true });
+      } catch {
+        setErrorMessage(
+          "사용자 정보를 만들지 못했어요. 잠시 후 다시 시도해주세요.",
+        );
+        setIsSubmitting(false);
+      }
+
       return;
     }
 
@@ -74,15 +98,38 @@ export default function OnboardingPage() {
                 alt="프로필"
                 className="mb-4 size-[60px] object-cover"
               />
-              <p className="body-15-sb">{nicknames[nicknameIndex]}</p>
+              <label className="sr-only" htmlFor="onboarding-nickname">
+                닉네임
+              </label>
+              <input
+                id="onboarding-nickname"
+                type="text"
+                value={nickname}
+                disabled={isSubmitting}
+                autoComplete="nickname"
+                enterKeyHint="done"
+                onChange={(event) => {
+                  setNickname(event.target.value);
+                  setErrorMessage("");
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                    handleNext();
+                  }
+                }}
+                className="body-15-sb text-text-light w-full max-w-[280px] rounded-[6px] border border-border-dark bg-bg-elev-warm px-4 py-3 text-center outline-none focus:border-text-muted-warm disabled:opacity-50"
+              />
               <button
                 type="button"
-                onClick={() =>
-                  setNicknameIndex(
-                    (current) => (current + 1) % nicknames.length,
-                  )
-                }
-                className="body-13-r mt-4 rounded-[6px] bg-[var(--color-bg-elev-warm)] px-4 py-2 text-[var(--color-text-cream)]"
+                disabled={isSubmitting}
+                onClick={() => {
+                  const nextIndex = (nicknameIndex + 1) % nicknames.length;
+
+                  setNicknameIndex(nextIndex);
+                  setNickname(nicknames[nextIndex]);
+                  setErrorMessage("");
+                }}
+                className="body-13-r mt-4 rounded-[6px] bg-[var(--color-bg-elev-warm)] px-4 py-2 text-[var(--color-text-cream)] disabled:opacity-50"
               >
                 다시 뽑기
               </button>
@@ -111,12 +158,18 @@ export default function OnboardingPage() {
           <div className="my-7">
             <Dots current={step} />
           </div>
+          {errorMessage && (
+            <p className="body-13-r mb-4 text-red-400" role="alert">
+              {errorMessage}
+            </p>
+          )}
           <Button
             variant={isNicknameStep ? "primary-light" : "primary-dark"}
             size="full"
             onClick={handleNext}
+            disabled={isSubmitting || (isNicknameStep && !nickname.trim())}
           >
-            {isNicknameStep ? "시작하기" : "다음"}
+            {isSubmitting ? "시작하는 중" : isNicknameStep ? "시작하기" : "다음"}
           </Button>
         </section>
       </main>

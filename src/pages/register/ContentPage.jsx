@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Button.jsx";
 import ContentSearchInput from "../../features/register/components/ContentSearchInput.jsx";
 import ContentSearchResults from "../../features/register/components/ContentSearchResults.jsx";
+import searchContents from "../../features/register/api/searchContents.js";
 import useRegisterDraft from "../../features/register/context/useRegisterDraft.js";
 
 function getCategoryLabel(category) {
@@ -60,6 +61,10 @@ function ContentPage() {
   const [selectedContent, setSelectedContent] = useState(
     draft.selectedContent,
   );
+  const [searchStatus, setSearchStatus] = useState(
+    draft.selectedContent ? "success" : "idle",
+  );
+  const [searchError, setSearchError] = useState("");
   const categoryLabel = getCategoryLabel(draft.category);
   const categoryClassName = getCategoryClassName(draft.category);
   const objectParticle = hasFinalConsonant(categoryLabel) ? "을" : "를";
@@ -68,12 +73,27 @@ function ContentPage() {
     dispatch({ type: "SET_SEARCH_QUERY", payload: event.target.value });
   };
 
-  const handleSearch = (query) => {
+  const handleSearch = async (query) => {
     dispatch({ type: "SET_SEARCH_QUERY", payload: query });
     setSubmittedQuery(query);
-
-    // TODO: 검색 API 응답으로 searchResults를 갱신합니다.
+    setSelectedContent(null);
     setSearchResults([]);
+    setSearchStatus("loading");
+    setSearchError("");
+
+    try {
+      const { items } = await searchContents({
+        keyword: query,
+        category: draft.category,
+        size: 4,
+      });
+
+      setSearchResults(items);
+      setSearchStatus("success");
+    } catch {
+      setSearchStatus("error");
+      setSearchError("검색이 원활하지 않아요. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   const handleSelectContent = (content) => {
@@ -95,26 +115,25 @@ function ContentPage() {
 
   if (submittedQuery) {
     return (
-      <section className="flex h-full flex-col">
-        <h1 className="heading-26-sb text-text-cream text-center">
+      <section className="flex h-full min-h-0 flex-col">
+        <h1 className="heading-26-sb text-text-cream shrink-0 text-center leading-[1.5]">
           {submittedQuery}
         </h1>
 
-        <div className="mt-8">
+        <div className="mt-3 min-h-0 overflow-y-auto">
           <ContentSearchResults
             results={searchResults}
             selectedContentId={selectedContent?.id}
             categoryClassName={categoryClassName}
+            categoryLabel={categoryLabel}
+            objectParticle={objectParticle}
+            isLoading={searchStatus === "loading"}
+            errorMessage={searchError}
             onSelect={handleSelectContent}
           />
         </div>
 
-        <p className="body-13-r text-text-muted-warm mt-8 text-center">
-          원하는 {categoryLabel}
-          {objectParticle} 찾을 수 없나요?
-        </p>
-
-        <div className="mt-auto pt-12">
+        <div className="mt-auto shrink-0 pt-3 [&_button]:text-[17px] [&_button]:font-medium">
           <Button onClick={handleNext}>다음</Button>
         </div>
       </section>

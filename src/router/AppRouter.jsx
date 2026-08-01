@@ -21,10 +21,12 @@ const PreviewPage = lazy(() => import("../pages/register/PreviewPage.jsx"));
 
 // 💡 1. 온보딩 완료 여부를 검사하는 가드(Guard) 컴포넌트를 추가합니다.
 function InitialRoute() {
-  // 사용 중인 로컬 스토리지 키값에 맞게 'hasSeenOnboarding' 부분을 변경하셔도 됩니다.
   const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+  const hasAnonymousToken = Boolean(
+    localStorage.getItem("schim.anonymousToken"),
+  );
 
-  if (!hasSeenOnboarding) {
+  if (!hasSeenOnboarding && !hasAnonymousToken) {
     // 온보딩을 안 봤다면 온보딩 페이지로 리다이렉트
     return <Navigate to="/onboarding" replace />;
   }

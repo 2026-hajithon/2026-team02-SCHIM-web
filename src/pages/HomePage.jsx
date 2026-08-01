@@ -1,45 +1,147 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 
-// 💡 레이아웃과 올바른 컴포넌트 경로 임포트
-import AppHeaderLayout from "../layouts/AppHeaderLayout";
-import GuestbookCard from "../components/common/Guestbookcard";
-import FloatingButton from "../components/common/button/FloatingButton";
-import Button from "../components/common/Button";
 import starIconSrc from "../assets/icon/star.svg";
 import heartIconSrc from "../assets/icon/favorite.svg";
-import { contentDecks } from "../mocks/contentDecks.js";
+import Button from "../components/common/Button";
+import FloatingButton from "../components/common/button/FloatingButton";
+import GuestbookCard from "../components/common/Guestbookcard";
+import getSurfCards from "../features/surfing/api/getSurfCards.js";
+import openGuestbook from "../features/surfing/api/openGuestbook.js";
+import AppHeaderLayout from "../layouts/AppHeaderLayout";
+
+function formatCreatedAt(createdAt) {
+  if (!createdAt) {
+    return "";
+  }
+
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return createdAt;
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
 
 export default function Home() {
   const navigate = useNavigate();
-
+  const requestIdRef = useRef(0);
+  const [cards, setCards] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [flippedState, setFlippedState] = useState({});
+  const [openedState, setOpenedState] = useState({});
   const [savedState, setSavedState] = useState({});
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadStatus, setLoadStatus] = useState("loading");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const mockCards = contentDecks;
+  const loadInitialCards = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
 
-  const currentCardId = mockCards[activeIndex]?.id;
-  const isCurrentFlipped = flippedState[currentCardId];
-  const isCurrentSaved = savedState[currentCardId];
+    setLoadStatus("loading");
+    setErrorMessage("");
 
-  const handleFlip = (id) => {
-    setFlippedState((prev) => ({ ...prev, [id]: true }));
+    try {
+      const result = await getSurfCards();
+
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
+      setCards(result.items);
+      setNextCursor(result.nextCursor);
+      setHasNext(result.hasNext);
+      setActiveIndex(0);
+      setLoadStatus("success");
+    } catch {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
+      setErrorMessage("카드를 불러오지 못했어요. 잠시 후 다시 시도해주세요.");
+      setLoadStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(loadInitialCards, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadInitialCards]);
+
+  const loadMoreCards = async () => {
+    if (!hasNext || !nextCursor || loadStatus === "loading-more") {
+      return;
+    }
+
+    setLoadStatus("loading-more");
+
+    try {
+      const result = await getSurfCards({ cursor: nextCursor });
+
+      setCards((current) => {
+        const knownIds = new Set(current.map((card) => card.guestbookId));
+        const newCards = result.items.filter(
+          (card) => !knownIds.has(card.guestbookId),
+        );
+
+        return [...current, ...newCards];
+      });
+      setNextCursor(result.nextCursor);
+      setHasNext(result.hasNext);
+      setLoadStatus("success");
+    } catch {
+      setLoadStatus("success");
+    }
+  };
+
+  const currentCard = cards[activeIndex];
+  const currentCardId = currentCard?.guestbookId;
+  const isCurrentFlipped = Boolean(flippedState[currentCardId]);
+  const isCurrentSaved = Boolean(savedState[currentCardId]);
+
+  const handleFlip = (id, openedCard) => {
+    setFlippedState((current) => ({ ...current, [id]: true }));
+    setOpenedState((current) => ({ ...current, [id]: openedCard }));
+    setSavedState((current) => ({
+      ...current,
+      [id]: Boolean(openedCard.saved),
+    }));
   };
 
   const handleSave = () => {
-    setSavedState((prev) => ({ ...prev, [currentCardId]: true }));
+    setSavedState((current) => ({
+      ...current,
+      [currentCardId]: true,
+    }));
+  };
+
+  const handleOpenContent = () => {
+    const contentId = openedState[currentCardId]?.contentId;
+
+    navigate(
+      contentId
+        ? `/contents?deckId=${encodeURIComponent(contentId)}`
+        : "/contents",
+    );
   };
 
   return (
     <AppHeaderLayout>
-      {/* 💡 핵심 수정: h-full 대신 min-h-full과 pb-20을 주어 세로로 스크롤되며 여유 있게 공간을 쓰도록 변경 */}
-      <div className="relative flex min-h-full flex-col items-center pt-6 pb-24 px-4 overflow-y-auto">
-        {/* 상단: 인사말 텍스트 영역 */}
-        <div className="mb-4 flex flex-col items-center text-center text-[var(--color-text-light)] shrink-0">
-          <p className="body-15-r mb-2 opacity-80">익명의 세탁실요정 님,</p>
+      <div className="relative flex min-h-full flex-col items-center overflow-y-auto px-4 pt-6 pb-24">
+        <div className="mb-4 flex shrink-0 flex-col items-center text-center text-text-light">
+          <p className="body-15-r mb-2 opacity-80">익명의 감상이에요</p>
           <h1 className="heading-26-b leading-snug">
             오늘은 어떤
             <br />
@@ -49,63 +151,90 @@ export default function Home() {
           <div className="mt-3 flex items-center justify-center">
             <img
               src={isCurrentSaved ? heartIconSrc : starIconSrc}
-              alt={isCurrentSaved ? "heart" : "star"}
-              className={`w-[24px] h-[24px] ${isCurrentSaved ? "opacity-100 scale-110" : "opacity-90 scale-100"}`}
+              alt=""
+              className={`size-6 ${
+                isCurrentSaved
+                  ? "scale-110 opacity-100"
+                  : "scale-100 opacity-90"
+              }`}
             />
           </div>
         </div>
 
-        {/* 중단: 방명록 카드 스와이프 영역 */}
-        <div className="w-full my-auto flex flex-col justify-center items-center py-2">
-          <Swiper
-            onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-            slidesPerView="auto"
-            centeredSlides={true}
-            spaceBetween={-140}
-            touchRatio={0.65}
-            speed={550}
-            resistanceRatio={0.4}
-            className="w-full overflow-visible [&_.swiper-slide-active]:z-20 [&_.swiper-slide]:z-0"
-          >
-            {mockCards.map((card) => (
-              <SwiperSlide key={card.id} style={{ width: "320px" }}>
-                {({ isActive }) => (
-                  <div
-                    className={`transition-all duration-500 flex justify-center ${
-                      isActive
-                        ? "opacity-100 scale-100"
-                        : "opacity-40 scale-[0.85]"
-                    }`}
-                  >
-                    <div className={isActive ? "" : "pointer-events-none"}>
-                      <GuestbookCard
-                        id={card.id}
-                        category={card.category}
-                        initialDate={card.date}
-                        content={card}
-                        onRefresh={() => console.log("갱신")}
-                        onFlip={handleFlip}
-                      />
+        <div className="my-auto flex w-full flex-col items-center justify-center py-2">
+          {loadStatus === "loading" ? (
+            <p className="body-15-r text-text-muted-warm">카드를 불러오는 중이에요.</p>
+          ) : loadStatus === "error" ? (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <p className="body-15-r text-text-muted-warm" role="alert">
+                {errorMessage}
+              </p>
+              <button
+                type="button"
+                onClick={loadInitialCards}
+                className="body-15-m rounded-md bg-bg-muted px-4 py-2"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : cards.length === 0 ? (
+            <p className="body-15-r text-text-muted-warm">
+              지금 읽을 수 있는 카드가 없어요.
+            </p>
+          ) : (
+            <Swiper
+              onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+              onReachEnd={loadMoreCards}
+              slidesPerView="auto"
+              centeredSlides
+              spaceBetween={-140}
+              touchRatio={0.65}
+              speed={550}
+              resistanceRatio={0.4}
+              className="w-full overflow-visible [&_.swiper-slide-active]:z-20 [&_.swiper-slide]:z-0"
+            >
+              {cards.map((card) => (
+                <SwiperSlide
+                  key={card.guestbookId}
+                  style={{ width: "320px" }}
+                >
+                  {({ isActive }) => (
+                    <div
+                      className={`flex justify-center transition-all duration-500 ${
+                        isActive
+                          ? "scale-100 opacity-100"
+                          : "scale-[0.85] opacity-40"
+                      }`}
+                    >
+                      <div className={isActive ? "" : "pointer-events-none"}>
+                        <GuestbookCard
+                          id={card.guestbookId}
+                          initialDate={formatCreatedAt(card.createdAt)}
+                          imageUrl={card.imageUrl}
+                          imageAlt={`${card.authorNickname}님의 감상 카드`}
+                          onOpen={openGuestbook}
+                          onRefresh={loadInitialCards}
+                          onFlip={handleFlip}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                  )}
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
         </div>
 
-        {/* 하단: 조건부 버튼 영역 */}
-        {/* 💡 핵심 수정: absolute를 해제하고 mt-auto와 pt-4를 주어 카드 아래에 안전하게 고정되도록 변경 */}
-        <div className="w-full mt-4 z-30 flex justify-center shrink-0">
+        <div className="z-30 mt-4 flex w-full shrink-0 justify-center">
           {!isCurrentFlipped ? (
-            <div className="w-full max-w-[342px] flex justify-end">
+            <div className="flex w-full max-w-[342px] justify-end">
               <FloatingButton
                 onClick={() => navigate("/register")}
                 label="방명록 작성하기"
               />
             </div>
           ) : (
-            <div className="flex gap-[12px] w-full max-w-[342px] justify-center">
+            <div className="flex w-full max-w-[342px] justify-center gap-3">
               <Button
                 variant="secondary-outline"
                 size="half"
@@ -116,11 +245,9 @@ export default function Home() {
               <Button
                 variant="secondary-filled"
                 size="half"
-                onClick={() =>
-                  navigate(`/contents?deckId=${mockCards[activeIndex].id}`)
-                }
+                onClick={handleOpenContent}
               >
-                콘텐츠 카드덱 보기
+                콘텐츠 카드 더 보기
               </Button>
             </div>
           )}

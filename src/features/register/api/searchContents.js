@@ -13,7 +13,9 @@ async function searchContents({ keyword, category, page = 1, size = 20 }) {
   return {
     items: response.data.map((content) => ({
       ...content,
-      id: content.contentId,
+      id:
+        content.contentId ??
+        `${content.provider}:${content.externalId}`,
     })),
     meta: response.meta,
   };
