@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import RequireCategory from "../features/register/guards/RequireCategory.jsx";
-import RequireCreatedCard from "../features/register/guards/RequireCreatedCard.jsx";
 import RequireExportedImage from "../features/register/guards/RequireExportedImage.jsx";
 import RequireSelectedContent from "../features/register/guards/RequireSelectedContent.jsx";
 import AppHeaderLayout from "../layouts/AppHeaderLayout.jsx";
@@ -14,12 +13,11 @@ import ContentsPage from "../pages/ContentsPage.jsx";
 import OnboardingPage from "../pages/OnboardingPage.jsx";
 import SettingsPage from "../pages/SettingsPage.jsx";
 import CategoryPage from "../pages/register/CategoryPage.jsx";
-import CompletePage from "../pages/register/CompletePage.jsx";
 import ContentPage from "../pages/register/ContentPage.jsx";
-import PreviewPage from "../pages/register/PreviewPage.jsx";
 import RegisterFlowRoot from "../pages/register/RegisterFlowRoot.jsx";
 
 const EditorPage = lazy(() => import("../pages/register/EditorPage.jsx"));
+const PreviewPage = lazy(() => import("../pages/register/PreviewPage.jsx"));
 
 function AppRouter() {
   return (
@@ -76,16 +74,10 @@ function AppRouter() {
               path="preview"
               element={
                 <RequireExportedImage>
-                  <PreviewPage />
+                  <Suspense fallback={null}>
+                    <PreviewPage />
+                  </Suspense>
                 </RequireExportedImage>
-              }
-            />
-            <Route
-              path="complete"
-              element={
-                <RequireCreatedCard>
-                  <CompletePage />
-                </RequireCreatedCard>
               }
             />
           </Route>

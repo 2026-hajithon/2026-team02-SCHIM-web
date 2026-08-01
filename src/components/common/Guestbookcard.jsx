@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-// --- Mock API Service ---
+// TODO: 실제 방명록 열기 API로 교체
 const openGuestbookAPI = async (id) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -10,14 +10,14 @@ const openGuestbookAPI = async (id) => {
       resolve({
         title: "코인세탁방 24시",
         subtitle: "서울 마포구 연남동",
-        thumbnail: null,
+        type: "세탁소",
+        quote: '"가만히 앉아 보고 있으니, 복잡했던\n생각도 조금씩 정리되네요."',
         guestbookCount: 12,
       });
     }, 600);
   });
 };
 
-// --- Component ---
 export default function GuestbookCard({
   id,
   category,
@@ -26,26 +26,39 @@ export default function GuestbookCard({
   onFlip,
   compact = false,
   disabled = false,
+  imageUrl,
+  imageAlt = "작성한 감상 카드",
+  interactive = true,
+  flipped,
   content,
+  onFlipComplete,
+  className = "",
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState(null);
+  const isControlled = flipped !== undefined;
+  const resolvedFlipped = isControlled ? flipped : isFlipped;
+  const resolvedData = content ?? data;
+  const canInteract = interactive && !disabled;
 
   const handleCardTap = async () => {
-    if (disabled || isFlipped || isLoading) return;
+    if (!canInteract || resolvedFlipped || isLoading) return;
 
     setIsLoading(true);
     try {
       const response = content ?? (await openGuestbookAPI(id));
       setData(response);
-      setIsFlipped(true);
 
-      if (onFlip) onFlip(id);
+      if (!isControlled) {
+        setIsFlipped(true);
+      }
+
+      onFlip?.(id);
     } catch (error) {
       if (error.status === 404) {
         alert("사라진 방명록이에요.");
-        onRefresh();
+        onRefresh?.();
       } else {
         alert("오류가 발생했습니다. 다시 시도해주세요.");
       }
@@ -54,7 +67,6 @@ export default function GuestbookCard({
     }
   };
 
-  // 카테고리 한글명 매핑
   const categoryLabel =
     {
       PLACE: "장소",
@@ -64,7 +76,6 @@ export default function GuestbookCard({
       SHOW: "공연",
     }[category] || "콘텐츠";
 
-  // 디자인 시스템 기반: 카테고리별 뒷면(Flip) 배경색 확실하게 매핑 (수정됨: --color- 접두사 추가)
   const categoryBgColor =
     {
       PLACE: "var(--color-key-place-500)",
@@ -75,86 +86,125 @@ export default function GuestbookCard({
     }[category] || "var(--color-key-place-500)";
 
   return (
-    // 피그마 스펙: width 320px, height 470px
     <div
-      className={`relative [perspective:1000px] ${disabled ? "cursor-default" : "cursor-pointer"} ${
-        compact ? "w-full aspect-[126/184]" : "w-[320px] h-[470px]"
-      }`}
+      className={`relative [perspective:1000px] ${
+        canInteract ? "cursor-pointer" : "cursor-default"
+      } ${compact ? "aspect-[126/184] w-full" : "h-[470px] w-[320px]"} ${className}`}
     >
       <motion.div
-        className="w-full h-full relative [transform-style:preserve-3d]"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        className="relative h-full w-full [transform-style:preserve-3d]"
+        animate={{ rotateY: resolvedFlipped ? 180 : 0 }}
         transition={{
           duration: 0.6,
           type: "spring",
           stiffness: 200,
           damping: 20,
         }}
-        onClick={disabled ? undefined : handleCardTap}
+        onAnimationComplete={() => {
+          if (resolvedFlipped) {
+            onFlipComplete?.();
+          }
+        }}
+        onClick={canInteract ? handleCardTap : undefined}
       >
-        {/* ==========================================
-            FRONT: 블라인드 카드 
-            ========================================== */}
-        <div className={`absolute inset-0 [backface-visibility:hidden] card-blind w-full h-full rounded-[4.14px] flex flex-col items-center ${compact ? "gap-2 p-2.5" : "gap-[16.57px] pt-[28px] px-[24px] pb-[20px]"}`}>
-          <div className="w-full flex-1 border-2 border-dashed border-[#b0a89f]/40 rounded flex items-center justify-center">
-            {/* 수정됨: --ink-soft -> --color-ink-soft */}
-            <span className={`${compact ? "caption-12-r" : "heading-20-b"} text-[var(--color-ink-soft)] opacity-60`}>
-              콘텐츠 영역
-            </span>
-          </div>
-
-          {/* 수정됨: --ink-soft -> --color-ink-soft */}
-          <div className="body-13-r text-[var(--color-ink-soft)]">
-            <span className="body-13-r text-[var(--color-ink-soft)]">
-              {initialDate}
-            </span>
-          </div>
-        </div>
-
-        {/* ==========================================
-            BACK: 리빌 카드 (색상 동적 적용)
-            ========================================== */}
         <div
-          // 수정됨: --ink-base -> --color-ink-base
-          className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] w-full h-full rounded-[4.14px] flex flex-col items-center text-[var(--color-ink-base)] shadow-xl ${compact ? "gap-2 p-2.5" : "gap-[16.57px] pt-[28px] px-[24px] pb-[20px]"}`}
-          style={{ backgroundColor: categoryBgColor }} // CSS 변수 직접 주입
+          className={`card-blind absolute inset-0 flex h-full w-full flex-col items-center rounded-[4.14px] [backface-visibility:hidden] ${
+            compact
+              ? "gap-2 p-2.5"
+              : "gap-[16.57px] px-[24px] pt-[28px] pb-[20px]"
+          }`}
         >
-          {/* 카테고리 뱃지 */}
-          {/* 수정됨: --ink-base -> --color-ink-base */}
-          <div className={`${compact ? "px-2 py-0.5" : "px-4 py-1"} rounded-full border border-[var(--color-ink-base)]/20 flex items-center justify-center shrink-0`}>
-            <span className={compact ? "caption-12-r" : "caption-12-sb"}>{categoryLabel}</span>
-          </div>
-
-          {/* 썸네일 */}
-          <div className={`${compact ? "w-full min-h-0 flex-1 rounded-md" : "w-[200px] h-[200px] rounded-xl shrink-0"} bg-[#d9d9d9] flex items-center justify-center overflow-hidden shadow-inner bg-black/5`}>
-            {data?.thumbnail && (
+          <div
+            className={`flex w-full flex-1 items-center justify-center overflow-hidden border border-dashed border-[#b0a89f]/40 ${
+              compact ? "rounded" : "rounded-[22px]"
+            }`}
+          >
+            {imageUrl ? (
               <img
-                src={data.thumbnail}
-                alt={data.title}
-                className="w-full h-full object-cover"
+                src={imageUrl}
+                alt={imageAlt}
+                className="size-full object-contain"
               />
+            ) : (
+              <span
+                className={`${
+                  compact ? "caption-12-r" : "body-17-sb"
+                } text-[var(--color-ink-soft)] opacity-60`}
+              >
+                콘텐츠 영역
+              </span>
             )}
           </div>
 
-          {/* 콘텐츠 정보 */}
-          <div className="flex flex-col items-center shrink-0">
-            <h2 className={`${compact ? "body-13-sb leading-tight" : "heading-26-b mb-1"} text-center`}>{data?.title}</h2>
-            <p className={`${compact ? "caption-12-r leading-tight" : "body-15-m"} opacity-75 text-center`}>{data?.subtitle}</p>
-          </div>
-
-          {/* 하단 메타 정보 */}
-          <div className={`${compact ? "hidden" : "w-full flex"} flex-col items-center mt-auto shrink-0`}>
-            {/* JSX 조건부 렌더링 문법 오류 수정 (&& 추가) */}
-            {category === "MOVIE" && (
-              <p className="caption-12-r opacity-60 mb-1">
-                Data provided by TMDB
-              </p>
-            )}
-            <p className="body-15-sb">
-              이 콘텐츠에 남겨진 방명록 {data?.guestbookCount}개
-            </p>
+          <div className="caption-12-r text-[var(--color-ink-soft)]">
+            {initialDate}
           </div>
         </div>
+
+        {compact ? (
+          <div
+            className="absolute inset-0 flex h-full w-full flex-col items-center gap-2 rounded-[4.14px] p-2.5 text-[var(--color-ink-base)] shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)]"
+            style={{ backgroundColor: categoryBgColor }}
+          >
+            <div className="flex shrink-0 items-center justify-center rounded-full border border-[var(--color-ink-base)]/20 px-2 py-0.5">
+              <span className="caption-12-r">{categoryLabel}</span>
+            </div>
+
+            <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-md bg-[#d9d9d9] bg-black/5 shadow-inner">
+              {resolvedData?.thumbnail && (
+                <img
+                  src={resolvedData.thumbnail}
+                  alt={resolvedData.title}
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
+
+            <div className="flex shrink-0 flex-col items-center">
+              <h2 className="body-13-sb text-center leading-tight">
+                {resolvedData?.title}
+              </h2>
+              <p className="caption-12-r text-center leading-tight opacity-75">
+                {resolvedData?.subtitle}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="text-ink-base absolute inset-0 h-full w-full rounded-[4.14px] shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)]"
+            style={{ backgroundColor: categoryBgColor }}
+          >
+            <div className="absolute top-[49px] left-1/2 flex w-[200px] -translate-x-1/2 flex-col items-center gap-[26px]">
+              <div className="bg-bg-base rounded-full px-3.5 py-1.5 text-white">
+                <span className="caption-12-sb leading-none">
+                  {categoryLabel}
+                </span>
+              </div>
+
+              <div className="flex w-full flex-col items-center gap-5 text-center">
+                <h2 className="heading-26-b w-full whitespace-nowrap">
+                  {resolvedData?.title}
+                </h2>
+                <div className="body-15-m text-ink-base/80 flex flex-col gap-0.5">
+                  {resolvedData?.subtitle && <p>{resolvedData.subtitle}</p>}
+                  {resolvedData?.type && <p>{resolvedData.type}</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute top-[285px] left-[29px] flex w-[262px] flex-col items-center gap-3 text-center">
+              <div className="bg-bg-base/25 h-px w-full" />
+              {resolvedData?.quote && (
+                <p className="body-15-r text-ink-base/80 whitespace-pre-line">
+                  {resolvedData.quote}
+                </p>
+              )}
+              <p className="text-ink-base text-[11px] leading-none font-semibold">
+                이 콘텐츠에 남겨진 방명록 {resolvedData?.guestbookCount ?? 0}개
+              </p>
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );
