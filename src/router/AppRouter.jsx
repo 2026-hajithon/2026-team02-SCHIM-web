@@ -19,90 +19,104 @@ import RegisterFlowRoot from "../pages/register/RegisterFlowRoot.jsx";
 const EditorPage = lazy(() => import("../pages/register/EditorPage.jsx"));
 const PreviewPage = lazy(() => import("../pages/register/PreviewPage.jsx"));
 
+// 💡 1. 온보딩 완료 여부를 검사하는 가드(Guard) 컴포넌트를 추가합니다.
+function InitialRoute() {
+  // 사용 중인 로컬 스토리지 키값에 맞게 'hasSeenOnboarding' 부분을 변경하셔도 됩니다.
+  const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+
+  if (!hasSeenOnboarding) {
+    // 온보딩을 안 봤다면 온보딩 페이지로 리다이렉트
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // 온보딩을 봤다면 원래대로 홈 화면 렌더링
+  return <HomePage />;
+}
+
 function AppRouter() {
   return (
     <Routes>
-        <Route index element={<HomePage />} />
-        <Route path="/contents" element={<ContentsPage />} />
+      {/* 💡 2. index(기본 경로)에 HomePage 대신 검사소인 InitialRoute를 연결합니다. */}
+      <Route index element={<InitialRoute />} />
+
+      <Route path="/contents" element={<ContentsPage />} />
+      <Route
+        element={
+          <AppHeaderLayout title="발견한 콘텐츠" contentClassName="px-6" />
+        }
+      >
         <Route
-          element={
-            <AppHeaderLayout title="발견한 콘텐츠" contentClassName="px-6" />
-          }
-        >
+          path="/discoveries"
+          element={<ArchivePage type="discoveries" />}
+        />
+      </Route>
+
+      <Route element={<AppHeaderLayout title="설정" contentClassName="px-6" />}>
+        <Route path="/settings" element={<SettingsPage />} />
+      </Route>
+
+      <Route path="/register" element={<RegisterFlowRoot />}>
+        <Route index element={<Navigate to="category" replace />} />
+
+        <Route element={<RegisterLayout currentStep={1} />}>
+          <Route path="category" element={<CategoryPage />} />
+        </Route>
+
+        <Route element={<RegisterLayout currentStep={2} />}>
           <Route
-            path="/discoveries"
-            element={<ArchivePage type="discoveries" />}
+            path="content"
+            element={
+              <RequireCategory>
+                <ContentPage />
+              </RequireCategory>
+            }
           />
         </Route>
 
-        <Route
-          element={<AppHeaderLayout title="설정" contentClassName="px-6" />}
-        >
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
-
-        <Route path="/register" element={<RegisterFlowRoot />}>
-          <Route index element={<Navigate to="category" replace />} />
-
-          <Route element={<RegisterLayout currentStep={1} />}>
-            <Route path="category" element={<CategoryPage />} />
-          </Route>
-
-          <Route element={<RegisterLayout currentStep={2} />}>
-            <Route
-              path="content"
-              element={
-                <RequireCategory>
-                  <ContentPage />
-                </RequireCategory>
-              }
-            />
-          </Route>
-
-          <Route element={<PlainLayout />}>
-            <Route
-              path="editor"
-              element={
-                <RequireSelectedContent>
-                  <Suspense fallback={null}>
-                    <EditorPage />
-                  </Suspense>
-                </RequireSelectedContent>
-              }
-            />
-            <Route
-              path="preview"
-              element={
-                <RequireExportedImage>
-                  <Suspense fallback={null}>
-                    <PreviewPage />
-                  </Suspense>
-                </RequireExportedImage>
-              }
-            />
-          </Route>
-        </Route>
-
-        <Route
-          path="/onboarding"
-          element={<PlainLayout contentClassName="px-6" />}
-        >
-          <Route index element={<OnboardingPage />} />
-          <Route path="nickname" element={<OnboardingPage nickname />} />
-        </Route>
-
-        {import.meta.env.DEV && (
+        <Route element={<PlainLayout />}>
           <Route
-            path="/showcase"
+            path="editor"
             element={
-              <PlainLayout contentClassName="bg-bg-raised text-text-light px-5 py-10" />
+              <RequireSelectedContent>
+                <Suspense fallback={null}>
+                  <EditorPage />
+                </Suspense>
+              </RequireSelectedContent>
             }
-          >
-            <Route index element={<HeaderShowcasePage />} />
-          </Route>
-        )}
+          />
+          <Route
+            path="preview"
+            element={
+              <RequireExportedImage>
+                <Suspense fallback={null}>
+                  <PreviewPage />
+                </Suspense>
+              </RequireExportedImage>
+            }
+          />
+        </Route>
+      </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/onboarding"
+        element={<PlainLayout contentClassName="px-6" />}
+      >
+        <Route index element={<OnboardingPage />} />
+        <Route path="nickname" element={<OnboardingPage nickname />} />
+      </Route>
+
+      {import.meta.env.DEV && (
+        <Route
+          path="/showcase"
+          element={
+            <PlainLayout contentClassName="bg-bg-raised text-text-light px-5 py-10" />
+          }
+        >
+          <Route index element={<HeaderShowcasePage />} />
+        </Route>
+      )}
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
