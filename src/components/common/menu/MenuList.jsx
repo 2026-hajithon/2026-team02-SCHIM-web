@@ -15,7 +15,7 @@ function MenuList({
       to: "/discoveries",
     },
     { label: "설정", to: "/settings" },
-    { label: "감상카드 남기기", to: "/register/category" },
+    { label: "감상카드 남기기", to: "/register" },
   ];
 
   return (

@@ -1,12 +1,11 @@
 import { useNavigate } from "react-router";
 import FloatingButton from "../components/common/button/FloatingButton.jsx";
-import AppHeaderLayout from "../layouts/AppHeaderLayout.jsx";
 
 function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <AppHeaderLayout contentClassName="relative px-6">
+    <>
       <section className="py-6">
         <h1 className="sr-only">홈</h1>
         <p className="body-15-r text-text-muted-warm">
@@ -15,9 +14,9 @@ function HomePage() {
       </section>
 
       <div className="absolute right-6 bottom-[max(24px,env(safe-area-inset-bottom))]">
-        <FloatingButton onClick={() => navigate("/register/category")} />
+        <FloatingButton onClick={() => navigate("/register")} />
       </div>
-    </AppHeaderLayout>
+    </>
   );
 }
 

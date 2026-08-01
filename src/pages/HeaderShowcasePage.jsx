@@ -2,7 +2,6 @@ import { useState } from "react";
 import FloatingButton from "../components/common/button/FloatingButton.jsx";
 import AppHeader from "../components/common/header/AppHeader.jsx";
 import RegisterHeader from "../components/common/header/RegisterHeader.jsx";
-import PlainLayout from "../layouts/PlainLayout.jsx";
 
 const headerExamples = [
   { label: "로고", title: undefined },
@@ -16,8 +15,7 @@ function HeaderShowcasePage() {
   const [lastAction, setLastAction] = useState("메뉴 버튼을 눌러보세요.");
 
   return (
-    <PlainLayout contentClassName="bg-bg-raised text-text-light px-5 py-10">
-      <div className="mx-auto max-w-[860px]">
+    <div className="mx-auto max-w-[860px]">
         <header className="mb-10">
           <p className="text-text-muted-grey body-13-sb mb-2 uppercase">
             Common component
@@ -86,8 +84,7 @@ function HeaderShowcasePage() {
         >
           {lastAction}
         </output>
-      </div>
-    </PlainLayout>
+    </div>
   );
 }
 

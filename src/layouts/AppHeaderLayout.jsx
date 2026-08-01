@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { Outlet } from "react-router";
 import AppHeader from "../components/common/header/AppHeader.jsx";
 import MenuOverlay from "../components/common/menu/MenuOverlay.jsx";
 import AppShell from "./AppShell.jsx";
@@ -30,7 +31,7 @@ function AppHeaderLayout({
           aria-hidden={isMenuOpen || undefined}
           inert={isMenuOpen ? "" : undefined}
         >
-          {children}
+          {children ?? <Outlet />}
         </main>
       </div>
 
